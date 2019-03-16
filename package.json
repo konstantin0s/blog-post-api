@@ -1,0 +1,14 @@
+{
+  "name": "blog-post-api",
+  "version": "1.0.0",
+  "description": "connect to front end \"blog-post\" app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Constantin Tofan",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
