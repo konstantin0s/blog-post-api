@@ -1,14 +1,24 @@
 const express = require('express');
-const app = express();
+const app     = express();
+const hbs = require('hbs');
+const path    = require('path');
+// const users = require('./users.json');
 
-// our first Route
-app.get('/', (request, response, next) => {
-  console.log(request);
-  response.send('<h1>Welcome Ironhacker. :)</h1>');
+app.set('view engine', 'hbs');
+app.set('views', __dirname + '/views');
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res, next) => {
+  // res.json(users);
+  res.render('index')
 });
 
+// app.get('/api/userz', (req, res, next) => {
+//   // res.json(users);
+// });
 
 
-app.listen(3001, () => {
-  console.log('My first app listening on port 3000!')
+
+app.listen(3001, ()=> {
+  console.log("listening")
 });
