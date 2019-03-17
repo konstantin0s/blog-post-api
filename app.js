@@ -31,8 +31,9 @@ app.use(
 
 
   const Users = require('./routes/Users');
-  
   app.use('/users', Users);
+  const Article = require('./routes/Article');
+  app.use('/articles', Article);
 
 app.get('/', (req, res, next) => {
   // res.json(users);
