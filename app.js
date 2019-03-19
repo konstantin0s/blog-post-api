@@ -5,7 +5,9 @@ const path    = require('path');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
-// const users = require('./users.json');
+const session    = require("express-session");
+const MongoStore = require("connect-mongo")(session);
+const cookieParser = require('cookie-parser');
 
 app.set('view engine', 'hbs');
 app.set('views', __dirname + '/views');
@@ -18,6 +20,7 @@ app.use(
     extended: false
   })
   )
+  app.use(cookieParser());
 
 
   mongoose 
@@ -29,22 +32,27 @@ app.use(
     console.error('Error connecting to mongo', err)
   });
 
+    //add session
+    app.use(session({
+      secret: "basic-auth-secret",
+      cookie: { maxAge: 60000 },
+      store: new MongoStore({
+        mongooseConnection: mongoose.connection,
+        ttl: 24 * 60 * 60 // 1 day
+      })
+    }));
+
 
   const Users = require('./routes/Users');
   app.use('/users', Users);
+
   const Articles = require('./routes/Articles');
   app.use('/articles', Articles);
 
-app.get('/', (req, res, next) => {
-  // res.json(users);
-  res.render('index')
-});
-
-// app.get('/api/userz', (req, res, next) => {
+// app.get('/', (req, res, next) => {
 //   // res.json(users);
+//   res.render('index')
 // });
-
-
 
 app.listen(3001, ()=> {
   console.log("listening")
