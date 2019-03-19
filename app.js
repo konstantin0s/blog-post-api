@@ -2,24 +2,29 @@ const express = require('express');
 const app     = express();
 const hbs = require('hbs');
 const path    = require('path');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const session    = require("express-session");
 const MongoStore = require("connect-mongo")(session);
 const cookieParser = require('cookie-parser');
+const passport      = require('passport');
+
+// require('./configs/passport');
 
 app.set('view engine', 'hbs');
 app.set('views', __dirname + '/views');
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(bodyParser.json());
-app.use(cors());
-app.use(
-  bodyParser.urlencoded({
-    extended: false
-  })
-  )
+app.use(express.json());
+app.use(cors({
+  credentials: true,
+  origin: ['http://localhost:3001']
+}));
+// app.use(
+//   bodyParser.urlencoded({
+//     extended: false
+//   })
+//   )
   app.use(cookieParser());
 
 
@@ -32,19 +37,31 @@ app.use(
     console.error('Error connecting to mongo', err)
   });
 
-    //add session
-    app.use(session({
-      secret: "basic-auth-secret",
-      cookie: { maxAge: 60000 },
-      store: new MongoStore({
-        mongooseConnection: mongoose.connection,
-        ttl: 24 * 60 * 60 // 1 day
-      })
-    }));
+// app.use(passport.initialize());
+// app.use(passport.session());
+
+//     //add session
+//     app.use(session({
+//       secret: "basic-auth-secret",
+//       cookie: { maxAge: 60000 },
+//       store: new MongoStore({
+//         mongooseConnection: mongoose.connection,
+//         ttl: 24 * 60 * 60 // 1 day
+//       })
+//     }));
 
 
   const Users = require('./routes/Users');
   app.use('/users', Users);
+
+  // app.use((req, res, next) => {
+  //   if (req.session.currentUser) { // <== if there's user in the session (user is logged in)
+  //     next(); // ==> go to the next route ---
+  //   } else {                          //    |
+  //     res.redirect("/login");         //    |
+  //   }                                 //    |
+  // }); 
+  
 
   const Articles = require('./routes/Articles');
   app.use('/articles', Articles);

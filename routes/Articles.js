@@ -45,6 +45,13 @@ router.get('/', (req, res) => {
     });
     
 
+    router.get('/:id', (req, res, next) => {
+      return res.json({
+        article: req.article.toJSON(),
+      });
+    });
+    
+
 
 
 //add submit POST route
@@ -58,6 +65,14 @@ router.post('/', (req, res) => {
   });
 
    newArticle.save().then(article => res.json(article))
+});
+
+//Edit single Article
+router.put('/:id', function(req, res, next) {
+  Article.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
+    if (err) return next(err);
+    res.json(post);
+  });
 });
 
 //@route Delete Article
