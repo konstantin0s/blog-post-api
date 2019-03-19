@@ -10,6 +10,7 @@ users.use(cors());
 process.env.SECRET_KEY = 'secret';
 
 users.post('/register', (req, res) => {
+  const redirectURL = '/';
   const today = new Date();
   const userData = {
          first_name: req.body.first_name,
@@ -28,6 +29,7 @@ users.post('/register', (req, res) => {
         userData.password = hash
         User.create(userData)
         .then(user => {
+          // res.redirect(redirectURL);
           res.json({status: user.email + ' registered!'})
         })
         .catch(err => {
