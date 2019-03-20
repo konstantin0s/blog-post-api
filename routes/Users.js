@@ -3,6 +3,8 @@ const users = express.Router();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+users.use(cookieParser());
 
 const User = require('../models/User');
 users.use(cors());
@@ -10,7 +12,6 @@ users.use(cors());
 process.env.SECRET_KEY = 'secret';
 
 users.post('/register', (req, res) => {
-  const redirectURL = '/';
   const today = new Date();
   const userData = {
          first_name: req.body.first_name,
@@ -29,7 +30,6 @@ users.post('/register', (req, res) => {
         userData.password = hash
         User.create(userData)
         .then(user => {
-          // res.redirect(redirectURL);
           res.json({status: user.email + ' registered!'})
         })
         .catch(err => {
@@ -52,7 +52,8 @@ users.post('/login', (req, res) => {
   .then(user => {
     if (user) {
       if (bcrypt.compareSync(req.body.password, user.password)) {
-         const payload = {
+        req.session.currentUser = user;
+        const payload = {
            _id: user._id,
            first_name: user.first_name,
            last_name: user.last_name,
@@ -94,11 +95,13 @@ users.get('/profile', (req, res) => {
   })
 })
 
-users.post('/logout', (req, res, next) => {
-  // req.logout() is defined by passport
-  req.logout();
-  res.status(200).json({ message: 'Log out success!' });
-});
+// users.post('/logout', (req, res, next) => {
+//   // req.logout() is defined by passport
+//   //  req.session.currentUser;
+//   req.logout();
+//   res.status(200).json({ message: 'Log out success!' });
+// });
+
 
 users.get('/profile', (req, res, next) => {
   // req.isAuthenticated() is defined by passport
@@ -107,6 +110,14 @@ users.get('/profile', (req, res, next) => {
       return;
   }
   res.status(403).json({ message: 'Unauthorized' });
+});
+
+users.post("/", (req, res, next) => {
+  res.clearCookie("name");
+  req.session.destroy((err) => {
+  // req.logout();
+  res.status(200).json({ message: 'Log out success!' });
+  });
 });
 
 

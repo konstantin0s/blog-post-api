@@ -8,6 +8,7 @@ const session    = require("express-session");
 const MongoStore = require("connect-mongo")(session);
 const cookieParser = require('cookie-parser');
 const passport      = require('passport');
+const multer = require('multer');
 
 // require('./configs/passport');
 
@@ -37,30 +38,51 @@ app.use(cors({
     console.error('Error connecting to mongo', err)
   });
 
-// app.use(passport.initialize());
-// app.use(passport.session());
-
-//     //add session
-//     app.use(session({
-//       secret: "basic-auth-secret",
-//       cookie: { maxAge: 60000 },
-//       store: new MongoStore({
-//         mongooseConnection: mongoose.connection,
-//         ttl: 24 * 60 * 60 // 1 day
-//       })
-//     }));
+  app.use(session({  //setup sessions always here 
+    secret: "basic-auth-secret",
+    key: 'sid',
+    cookie: { maxAge: 60000 },
+    resave: true,
+    saveUninitialized: true,
+    store: new MongoStore({
+      mongooseConnection: mongoose.connection,
+      ttl: 24 * 60 * 60 // 1 day
+    })
+  }));
 
 
   const Users = require('./routes/Users');
   app.use('/users', Users);
 
-  // app.use((req, res, next) => {
-  //   if (req.session.currentUser) { // <== if there's user in the session (user is logged in)
-  //     next(); // ==> go to the next route ---
-  //   } else {                          //    |
-  //     res.redirect("/login");         //    |
-  //   }                                 //    |
-  // }); 
+  var storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/images/uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname)
+    }
+});
+const upload = multer({
+    storage
+})
+
+app.use(cors());
+app.post('/upload', upload.single('image'), (req, res) => {
+    if (req.file)
+        res.json({
+            imageUrl: `images/uploads/${req.file.filename}`
+        });
+    else
+        res.status("409").json("No Files to Upload.");
+});
+
+  app.use((req, res, next) => {
+    if (req.session.currentUser) { // <== if there's user in the session (user is logged in)
+      next(); // ==> go to the next route ---
+    } else {                          //    |
+      res.redirect("/login");         //    |
+    }                                 //    |
+  }); 
   
 
   const Articles = require('./routes/Articles');
@@ -74,3 +96,11 @@ app.use(cors({
 app.listen(3001, ()=> {
   console.log("listening")
 });
+
+  //close mongodb
+  process.on('SIGINT', function() {
+    mongoose.connection.close(function () {
+      console.log('Mongoose disconnected on app termination');
+      process.exit(0);
+    });
+  });
