@@ -54,39 +54,27 @@ app.use(cors({
   const Users = require('./routes/Users');
   app.use('/users', Users);
 
-  var storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/images/uploads')
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname)
+  // app.use((req, res, next) => {
+  //   if (req.session.currentUser) { // <== if there's user in the session (user is logged in)
+  //     next(); // ==> go to the next route ---
+  //   } else {                          //    |
+  //     res.redirect("/login");         //    |
+  //   }                                 //    |
+  // }); 
+
+  const protect = (req, res, next)=> {
+    debugger
+    if(req.session.user) {
+      next()
+    } else {
+      res.status(403).json({message: "Unauthorized"})
     }
-});
-const upload = multer({
-    storage
-})
-
-app.use(cors());
-app.post('/upload', upload.single('image'), (req, res) => {
-    if (req.file)
-        res.json({
-            imageUrl: `images/uploads/${req.file.filename}`
-        });
-    else
-        res.status("409").json("No Files to Upload.");
-});
-
-  app.use((req, res, next) => {
-    if (req.session.currentUser) { // <== if there's user in the session (user is logged in)
-      next(); // ==> go to the next route ---
-    } else {                          //    |
-      res.redirect("/login");         //    |
-    }                                 //    |
-  }); 
+  }
   
 
-  const Articles = require('./routes/Articles');
-  app.use('/articles', Articles);
+  // const Articles = require('./routes/Articles');
+  app.use('/articles', protect, require('./routes/Articles'));
+  app.use('/', protect, require('./routes/file-upload-routes'));
 
 // app.get('/', (req, res, next) => {
 //   // res.json(users);

@@ -5,11 +5,21 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 users.use(cookieParser());
+require("dotenv").config();
 
 const User = require('../models/User');
 users.use(cors());
 
-process.env.SECRET_KEY = 'secret';
+const protect = (req, res, next)=> {
+  debugger
+  if(req.session.user) {
+    next()
+  } else {
+    res.status(403).json({message: "Unauthorized"})
+  }
+}
+
+// process.env.SECRET_KEY = 'secret';
 
 users.post('/register', (req, res) => {
   const today = new Date();
@@ -52,7 +62,7 @@ users.post('/login', (req, res) => {
   .then(user => {
     if (user) {
       if (bcrypt.compareSync(req.body.password, user.password)) {
-        req.session.currentUser = user;
+        req.session.user = user; // check this if you cannot go to profile page!
         const payload = {
            _id: user._id,
            first_name: user.first_name,
@@ -77,7 +87,7 @@ users.post('/login', (req, res) => {
   })
 })
 
-users.get('/profile', (req, res) => {
+users.get('/profile',protect, (req, res) => {
   const decoded = jwt.verify(req.headers['authorization'], process.env.SECRET_KEY)
 
   User.findOne({
@@ -103,16 +113,16 @@ users.get('/profile', (req, res) => {
 // });
 
 
-users.get('/profile', (req, res, next) => {
-  // req.isAuthenticated() is defined by passport
-  if (req.isAuthenticated()) {
-      res.status(200).json(req.user);
-      return;
-  }
-  res.status(403).json({ message: 'Unauthorized' });
-});
+// users.get('/profile', protect,(req, res, next) => {
+//   // req.isAuthenticated() is defined by passport
+//   if (req.isAuthenticated()) {
+//       res.status(200).json(req.user);
+//       return;
+//   }
+//   res.status(403).json({ message: 'Unauthorized' });
+// });
 
-users.post("/", (req, res, next) => {
+users.post("/logout", (req, res, next) => {
   res.clearCookie("name");
   req.session.destroy((err) => {
   // req.logout();
