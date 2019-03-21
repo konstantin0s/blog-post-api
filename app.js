@@ -77,7 +77,7 @@ app.use(cors({
   app.use('/', protect, require('./routes/file-upload-routes'));
 
 // app.get('/', (req, res, next) => {
-//   // res.json(users);
+//   res.json(users);
 //   res.render('index')
 // });
 
